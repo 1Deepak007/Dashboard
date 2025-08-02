@@ -1,31 +1,60 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Header from '../components/Header';
 import { Download, Plus, Search, Filter, MoreHorizontal, Eye, Edit, Trash2 } from 'lucide-react';
 
-const Products: React.FC = () => {
-  const sampleProduct = {
+const sampleProducts = [
+  {
     id: 'P-00001',
     code: '6052',
     name: 'Godrej 808Z Tambola A4 + 10K LatinNet',
     supplier: 'Henin Hardware',
     category: 'Door Lock',
     brand: 'Godrej',
-    purchasePrice: 1797.00,
-    mrp: 2148.00,
-    sellingPrice: 2000.00,
+    purchasePrice: 1797.0,
+    mrp: 2148.0,
+    sellingPrice: 2000.0,
     stock: 18,
     tax: 'GST (18%)',
-    status: 'Active' as const
-  };
+    status: 'Active' as const,
+  },
+  {
+    id: 'P-00002',
+    code: '6053',
+    name: 'Yale YDME 50 Digital Lock',
+    supplier: 'Yale Supplies',
+    category: 'Digital Lock',
+    brand: 'Yale',
+    purchasePrice: 5000.0,
+    mrp: 6000.0,
+    sellingPrice: 5800.0,
+    stock: 5,
+    tax: 'GST (18%)',
+    status: 'Inactive' as const,
+  },
+];
+
+const Products: React.FC = () => {
+  const [filterActive, setFilterActive] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<'All' | 'Active' | 'Inactive'>('All');
+  const [search, setSearch] = useState('');
+
+  const filteredProducts = sampleProducts.filter((product) => {
+    const matchesStatus =
+      statusFilter === 'All' ? true : product.status === statusFilter;
+    const matchesSearch =
+      product.name.toLowerCase().includes(search.toLowerCase()) ||
+      product.code.includes(search);
+    return matchesStatus && matchesSearch;
+  });
 
   return (
     <div className="flex-1 bg-gray-50">
-      <Header 
-        title="Products" 
+      <Header
+        title="Products"
         subtitle="Manage your product inventory"
         breadcrumbs={['Dashboard', 'Products']}
       />
-      
+
       <div className="p-6">
         {/* Action Buttons */}
         <div className="flex justify-between items-center mb-6">
@@ -41,6 +70,8 @@ const Products: React.FC = () => {
             </button>
           </div>
         </div>
+
+
 
         {/* Summary Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-6">
@@ -97,27 +128,56 @@ const Products: React.FC = () => {
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           <div className="p-6 border-b border-gray-200">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-  <div>
-    <h3 className="text-lg font-semibold text-gray-900">Product List</h3>
-    <p className="text-sm text-gray-600">View and manage all your products (1 total)</p>
-  </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Product List</h3>
+                <p className="text-sm text-gray-600">
+                  View and manage all your products ({filteredProducts.length} total)
+                </p>
+              </div>
 
-  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end sm:gap-3">
-    <div className="relative w-full sm:w-auto">
-      <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-      <input
-        type="text"
-        placeholder="Search products..."
-        className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full sm:w-64"
-      />
-    </div>
-    <button className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50">
-      <Filter className="w-4 h-4 mr-2" />
-      Filter
-    </button>
-  </div>
-</div>
-
+                  {/* Filter UI */}
+                  {filterActive && (
+                    <div className="mb-4 flex items-center space-x-4">
+                      <label className="text-sm font-medium">Status:</label>
+                      <select
+                        className="border border-gray-300 rounded px-2 py-1 text-sm"
+                        value={statusFilter}
+                        onChange={(e) =>
+                          setStatusFilter(e.target.value as 'All' | 'Active' | 'Inactive')
+                        }
+                      >
+                        <option value="All">All</option>
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                      </select>
+                      <button
+                        className="ml-2 px-3 py-1 text-sm rounded bg-gray-200 hover:bg-gray-300"
+                        onClick={() => setFilterActive(false)}
+                      >
+                        Close Filter
+                      </button>
+                    </div>
+                  )}
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end sm:gap-3">
+                <div className="relative w-full sm:w-auto">
+                  <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search products..."
+                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full sm:w-64"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                  />
+                </div>
+                <button
+                  className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+                  onClick={() => setFilterActive((v) => !v)}
+                >
+                  <Filter className="w-4 h-4 mr-2" />
+                  Filter
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Table */}
@@ -155,55 +215,68 @@ const Products: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                <tr className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{sampleProduct.id}</div>
-                    <div className="text-sm text-gray-500">{sampleProduct.code}</div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-sm font-medium text-gray-900">{sampleProduct.name}</div>
-                    <div className="text-sm text-gray-500">{sampleProduct.supplier}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{sampleProduct.category}</div>
-                    <div className="text-sm text-gray-500">{sampleProduct.brand}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">₹{sampleProduct.purchasePrice.toFixed(2)}</div>
-                    <div className="text-sm text-gray-500">₹{sampleProduct.mrp.toFixed(2)}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">₹{sampleProduct.sellingPrice.toFixed(2)}</div>
-                    <div className="text-sm text-gray-500">(Exclusive Tax)</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{sampleProduct.stock}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{sampleProduct.tax}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                      {sampleProduct.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center space-x-2">
-                      <button className="p-1 text-gray-400 hover:text-blue-600">
-                        <Eye className="w-4 h-4" />
-                      </button>
-                      <button className="p-1 text-gray-400 hover:text-green-600">
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button className="p-1 text-gray-400 hover:text-red-600">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                      <button className="p-1 text-gray-400 hover:text-gray-600">
-                        <MoreHorizontal className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
+                {filteredProducts.length === 0 ? (
+                  <tr>
+                    <td colSpan={9} className="text-center py-6 text-gray-500">
+                      No products found.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredProducts.map((product) => (
+                    <tr key={product.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">{product.id}</div>
+                        <div className="text-sm text-gray-500">{product.code}</div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-sm font-medium text-gray-900">{product.name}</div>
+                        <div className="text-sm text-gray-500">{product.supplier}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">{product.category}</div>
+                        <div className="text-sm text-gray-500">{product.brand}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">₹{product.purchasePrice.toFixed(2)}</div>
+                        <div className="text-sm text-gray-500">₹{product.mrp.toFixed(2)}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">₹{product.sellingPrice.toFixed(2)}</div>
+                        <div className="text-sm text-gray-500">(Exclusive Tax)</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">{product.stock}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">{product.tax}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${product.status === 'Active'
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-gray-200 text-gray-700'
+                          }`}>
+                          {product.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center space-x-2">
+                          <button className="p-1 text-gray-400 hover:text-blue-600">
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          <button className="p-1 text-gray-400 hover:text-green-600">
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button className="p-1 text-gray-400 hover:text-red-600">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                          <button className="p-1 text-gray-400 hover:text-gray-600">
+                            <MoreHorizontal className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
