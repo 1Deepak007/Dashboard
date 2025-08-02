@@ -123,26 +123,30 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         style={{ zIndex: SIDEBAR_Z_INDEX }}
       >
         <Sidebar
-          isOpen={sidebarOpen} 
+          isOpen={sidebarOpen}
           isMobile={isMobile}
           onClose={closeSidebar}
+          onToggle={toggleSidebar}
         />
       </div>
       
       <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between md:hidden">
-          <button
-            onClick={toggleSidebar}
-            className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            aria-label="Open sidebar"
-          >
-            <Menu className="w-6 h-6" />
-          </button>
-          <h1 className="text-lg font-semibold text-gray-900">
-            Test Shop
-          </h1>
-          <div className="w-10" />
-        </header>
+        {isMobile && (
+          <header className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
+            <button
+              onClick={toggleSidebar}
+              className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              aria-label="Toggle sidebar"
+            >
+              
+              <Menu className="w-6 h-6" />
+            </button>
+    
+              <h2 className='text-xl font-bold'>Test Shop</h2>
+
+            <div className="w-10" />
+          </header>
+        )}
         
         <main className="flex-1 overflow-auto">
           {children}

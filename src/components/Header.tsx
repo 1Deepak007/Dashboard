@@ -10,8 +10,10 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ title, subtitle, breadcrumbs = [] }) => {
   return (
     <header className="bg-white border-b border-gray-200 px-6 py-4">
+
       <div className="flex items-center justify-between">
         <div>
+
           {/* {breadcrumbs.length > 0 && (
             <nav className="flex items-center space-x-2 text-sm text-gray-500 mb-1">
               {breadcrumbs.map((crumb, index) => (
