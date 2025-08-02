@@ -12,12 +12,10 @@ const Dashboard: React.FC = () => {
       />
       
       <div className="p-6">
-        {/* Last Updated */}
         <div className="mb-6">
-          <p className="text-sm text-gray-500">Last updated: 01/08/2020</p>
+          <p className="text-sm text-gray-500">Last updated: 01/08/2025</p>
         </div>
 
-        {/* Metric Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
           <MetricCard
             title="Total Products"
@@ -56,9 +54,7 @@ const Dashboard: React.FC = () => {
           />
         </div>
 
-        {/* Additional Dashboard Content */}
         <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Recent Activity */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
             <div className="space-y-3">
@@ -68,7 +64,6 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
 
-          {/* Quick Actions */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
             <div className="grid grid-cols-2 gap-3">

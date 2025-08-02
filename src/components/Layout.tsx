@@ -1,68 +1,152 @@
-import React, { useState, useEffect } from 'react';
-import { Menu, X } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Menu } from 'lucide-react';
 import Sidebar from './Sidebar';
+
+
+const BREAKPOINTS = {
+  MOBILE: 768,
+} as const;
+
+const SIDEBAR_Z_INDEX = 50;
+const OVERLAY_Z_INDEX = 40;
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
-const Layout: React.FC<LayoutProps> = ({ children }) => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(true); // Start with mobile assumption
+const useResponsive = () => {
+  const [isMobile, setIsMobile] = useState(() => {
+    // Safe window access with fallback for SSR
+    if (typeof window === 'undefined') return true;
+    return window.innerWidth < BREAKPOINTS.MOBILE;
+  });
 
   useEffect(() => {
-    const checkScreenSize = () => {
-      const mobile = window.innerWidth < 768; // md breakpoint
-      setIsMobile(mobile);
-      // Set initial sidebar state based on screen size
-      setSidebarOpen(!mobile);
+    // Guard against SSR
+    if (typeof window === 'undefined') return;
+
+    let timeoutId: NodeJS.Timeout;
+
+    const handleResize = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        setIsMobile(window.innerWidth < BREAKPOINTS.MOBILE);
+      }, 100);
     };
 
-    // Check immediately on mount
-    checkScreenSize();
-    window.addEventListener('resize', checkScreenSize);
-    return () => window.removeEventListener('resize', checkScreenSize);
-  }, []); // Remove sidebarOpen dependency to avoid infinite loop
+    window.addEventListener('resize', handleResize, { passive: true });
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      clearTimeout(timeoutId);
+    };
+  }, []);
 
-  const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
-  };
+  return isMobile;
+};
 
-  const closeSidebar = () => {
+const useSidebar = (isMobile: boolean) => {
+  const [sidebarOpen, setSidebarOpen] = useState(() => !isMobile);
+
+  useEffect(() => {
+    if (isMobile) {
+      setSidebarOpen(false);
+    } else {
+      setSidebarOpen(true);
+    }
+  }, [isMobile]);
+
+  const closeSidebar = useCallback(() => {
     setSidebarOpen(false);
+  }, []);
+
+  const toggleSidebar = useCallback(() => {
+    setSidebarOpen(prev => !prev);
+  }, []);
+
+  return {
+    sidebarOpen,
+    setSidebarOpen,
+    closeSidebar,
+    toggleSidebar,
   };
+};
+
+const Layout: React.FC<LayoutProps> = ({ children }) => {
+  const isMobile = useResponsive();
+  const { sidebarOpen, closeSidebar, toggleSidebar } = useSidebar(isMobile);
+
+  // Handle escape key to close sidebar on mobile
+  useEffect(() => {
+    if (!isMobile || !sidebarOpen) return;
+
+    const handleEscapeKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        closeSidebar();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscapeKey);
+    return () => document.removeEventListener('keydown', handleEscapeKey);
+  }, [isMobile, sidebarOpen, closeSidebar]);
+
+  useEffect(() => {
+    if (isMobile && sidebarOpen) {
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = '';
+      };
+    }
+  }, [isMobile, sidebarOpen]);
 
   return (
-    <div className="flex h-screen bg-gray-100 relative">
-      {/* Mobile Overlay */}
+    <div className="flex h-screen bg-gray-100">
       {isMobile && sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+          className="fixed inset-0 bg-black bg-opacity-50 transition-opacity duration-300"
+          style={{ zIndex: OVERLAY_Z_INDEX }}
           onClick={closeSidebar}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              closeSidebar();
+            }
+          }}
+          tabIndex={0}
+          role="button"
+          aria-label="Close sidebar"
         />
       )}
       
-      <Sidebar isOpen={sidebarOpen} isMobile={isMobile} onClose={closeSidebar} />
+      <div
+        className="relative"
+        style={{ zIndex: SIDEBAR_Z_INDEX }}
+      >
+        <Sidebar
+          isOpen={sidebarOpen} 
+          isMobile={isMobile}
+          onClose={closeSidebar}
+        />
+      </div>
       
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Toggle Button */}
-        <div className="bg-white border-b border-gray-200 px-4 py-2 flex items-center">
+        <header className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between md:hidden">
           <button
             onClick={toggleSidebar}
-            className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
-            aria-label={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
+            className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            aria-label="Open sidebar"
           >
-            {sidebarOpen ? (
-              <X className="w-6 h-6" />
-            ) : (
-              <Menu className="w-6 h-6" />
-            )}
+            <Menu className="w-6 h-6" />
           </button>
-          <h1 className="ml-4 text-lg font-semibold text-gray-900 md:hidden">
+          <h1 className="text-lg font-semibold text-gray-900">
             Test Shop
           </h1>
-        </div>
-        {children}
+          <div className="w-10" />
+        </header>
+        
+        <main className="flex-1 overflow-auto">
+          {children}
+        </main>
       </div>
     </div>
   );
